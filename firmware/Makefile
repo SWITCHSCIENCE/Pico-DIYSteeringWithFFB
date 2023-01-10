@@ -7,7 +7,7 @@ include .env
 
 build:
 	mkdir -p build
-	$(TINYGO) build -target $(TARGET) -o build/$(NAME).elf .
+	$(TINYGO) build -target $(TARGET) -o build/$(NAME).uf2 .
 
 all: flash wait monitor
 
