@@ -1,13 +1,13 @@
 TARGET=pico
-TINEGO=tinygo
-NAME=$(shell tinygo list .)
-include .env
+TINYGO=tinygo
+-include .env
+NAME=$(notdir $(shell $(TINYGO) list .))
 
 .PHONY: build all flash wait mon
 
 build:
 	mkdir -p build
-	$(TINYGO) build -target $(TARGET) -o build/$(NAME).uf2 .
+	$(TINYGO) build -target $(TARGET) -o build/$(NAME).elf .
 
 all: flash wait monitor
 
@@ -25,3 +25,6 @@ gdb:
 
 server:
 	"C:\Program Files\SEGGER\JLink\JLinkGDBServer.exe" -if swd -port 3333 -speed 4000 -device rp2040_m0_0 &
+
+docker:
+	docker compose up build 

@@ -1,0 +1,10 @@
+version: "3.9"
+services:
+  build:
+    build: .
+    image: tinygo/tinygo:0.27.0
+    volumes:
+      - .:/app
+    command: sh -c "go mod tidy && GOFLAGS="-buildvcs=false" mkdir -p build && tinygo build -tags dummy -target pico -o build/$$(basename $$(tinygo list .)).uf2 ."
+    working_dir: /app
+    tty: true

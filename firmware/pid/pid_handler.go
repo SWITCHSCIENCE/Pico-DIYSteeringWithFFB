@@ -9,23 +9,26 @@ import (
 )
 
 type PIDHandler struct {
-	effectStates [MAX_EFFECTS]*TEffectState
+	effectStates []*TEffectState
+	pidBlockLoad PIDBlockLoadFeatureData
+	pidPool      PIDPoolFeatureData
 	gains        Gains
 	params       EffectParams
 	nextEID      uint8
 	enabled      bool
 	paused       bool
 	gain         uint8
-	pidBlockLoad PIDBlockLoadFeatureData
 }
 
 func NewPIDHandler() *PIDHandler {
-	effects := [MAX_EFFECTS]*TEffectState{}
+	effects := make([]*TEffectState, MAX_EFFECTS)
 	for i := range effects[:] {
 		effects[i] = &TEffectState{}
 	}
 	return &PIDHandler{
 		effectStates: effects,
+		pidBlockLoad: PIDBlockLoadFeatureData{b: make([]byte, 5)},
+		pidPool:      PIDPoolFeatureData{b: make([]byte, 5)},
 		gains: Gains{
 			TotalGain:    255,
 			ConstantGain: 255,
@@ -119,12 +122,12 @@ func (m *PIDHandler) GetReport(setup usb.Setup) bool {
 }
 
 func (m *PIDHandler) GetIdle(setup usb.Setup) bool {
-	machine.SendUSBInPacket(0, []byte{0})
+	machine.SendZlp()
 	return true
 }
 
 func (m *PIDHandler) GetProtocol(setup usb.Setup) bool {
-	machine.SendUSBInPacket(0, []byte{0})
+	machine.SendZlp()
 	return true
 }
 
@@ -242,7 +245,7 @@ func (m *PIDHandler) StopEffect(id uint8) {
 func (m *PIDHandler) FreeAllEffects() {
 	m.nextEID = 1
 	for id := uint8(0); id < MAX_EFFECTS; id++ {
-		*m.effectStates[id] = TEffectState{}
+		m.effectStates[id].Clear()
 	}
 	m.pidBlockLoad.RamPoolAvailable = MEMORY_SIZE
 }
@@ -357,7 +360,6 @@ func (m *PIDHandler) EffectOperation(b []byte) {
 		default:
 			effect.Duration *= uint16(v.LoopCount)
 		}
-		m.effectStates[v.EffectBlockIndex] = effect
 		m.StartEffect(v.EffectBlockIndex)
 	case EOStartSolo:
 		m.StopAllEffects()

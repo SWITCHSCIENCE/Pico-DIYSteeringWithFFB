@@ -8,9 +8,9 @@ import (
 
 	"tinygo.org/x/drivers/mcp2515"
 
-	"diy-ffb-wheel/motor"
-	"diy-ffb-wheel/pid"
-	"diy-ffb-wheel/utils"
+	"github.com/SWITCHSCIENCE/Pico-DIYSteeringWithFFB/motor"
+	"github.com/SWITCHSCIENCE/Pico-DIYSteeringWithFFB/pid"
+	"github.com/SWITCHSCIENCE/Pico-DIYSteeringWithFFB/utils"
 )
 
 const (
@@ -75,43 +75,36 @@ func main() {
 	if err := motor.Setup(can); err != nil {
 		log.Fatal(err)
 	}
-
+	// loop for 10 ms cycle
+	ticker := time.NewTicker(10 * time.Millisecond)
 	fit := utils.Map(-MaxAngle, MaxAngle, -32767, 32767)
 	limitInt16 := utils.Limit(-32767, 32767)
 	centeringForceLimit := utils.Limit(-500, 500)
-
-	// loop for 10 ms cycle
-	ticker := time.NewTicker(10 * time.Millisecond)
+	cnt := 0
 	for range ticker.C {
 		state, err := motor.GetState(can)
 		if err != nil {
 			log.Print(err)
 		}
-		angle := fit(state.Angle) // convert angle to int16
-		centeringForce := centeringForceLimit(-angle)
-		damperCancelingForce := int32(state.Verocity) * 128
-		output := centeringForce + damperCancelingForce
-
-		// append lock2lock counterforce
+		angle := fit(state.Angle)
+		output := centeringForceLimit(-angle) + int32(state.Verocity)*128
+		force := ph.CalcForces()
 		switch {
 		case angle > 32767:
 			output -= 8 * (angle - 32767)
 		case angle < -32767:
 			output -= 8 * (angle + 32767)
 		}
-
-		force := ph.CalcForces() // calc x and y forces for application
-		output -= force[0]       // append reversed x force
-
-		// motor output force
+		output -= force[0]
+		cnt++
+		if cnt < 300 {
+			output = output * int32(cnt) / 300
+		}
 		if err := motor.Output(can, int16(limitInt16(output))); err != nil {
 			log.Print(err)
 		}
-
-		// joystick set state x and steering axises
-		steering := int(limitInt16(angle))
-		js.SetAxis(0, steering) // for x-azis
-		js.SetAxis(5, steering) // for steering-axis
+		js.SetButton(2, angle > 32767)
+		js.SetButton(3, angle < -32767)
 		js.SendState()
 	}
 }

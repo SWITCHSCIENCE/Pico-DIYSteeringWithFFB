@@ -88,19 +88,17 @@ cd Pico-DIYSteeringWithFFB
 cd firmware
 ```
 
-Windows:
+ビルド
 ```
-docker run -it --rm -v %CD%:/app -w /app tinygo/tinygo-dev tinygo build -target pico -o main.uf2
+docker compose up build
 ```
-Others:
-```
-docker run -it --rm -v $PWD:/app -w /app tinygo/tinygo-dev tinygo build -target pico -o main.uf2
-```
+
+正常にビルドできた場合、`build/Pico-DIYSteeringWithFFB.uf2`が出力されます。
 
 ### 書き込み
 
 「BOOT SEL」ボタンを押しながらPicoをPCに繋ぎます。
-「RPI-PICO」という名称のドライブが見えたらそこに「main.uf2」をドラッグ＆ドロップします。
+「RPI-PICO」という名称のドライブが見えたらそこに「Pico-DIYSteeringWithFFB.uf2」をドラッグ＆ドロップします。
 
 ## 動作テスト
 

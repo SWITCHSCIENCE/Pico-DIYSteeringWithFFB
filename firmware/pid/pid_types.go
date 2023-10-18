@@ -314,10 +314,11 @@ type PIDBlockLoadFeatureData struct {
 	EffectBlockIndex uint8    // 1..40
 	LoadStatus       uint8    // 1=Success,2=Full,3=Error
 	RamPoolAvailable uint16   // =0 or 0xFFFF?
+	b                []byte
 }
 
 func (s PIDBlockLoadFeatureData) MarshalBinary() ([]byte, error) {
-	b := make([]byte, 0, 5)
+	b := s.b[:0]
 	b = append(b, byte(s.ReportID))
 	b = append(b, s.EffectBlockIndex)
 	b = append(b, s.LoadStatus)
@@ -330,10 +331,11 @@ type PIDPoolFeatureData struct {
 	RamPoolSize            uint16   // ?
 	MaxSimultaneousEffects uint8    // ?? 40?
 	MemoryManagement       uint8    // Bits: 0=DeviceManagedPool, 1=SharedParameterBlocks
+	b                      []byte
 }
 
 func (s PIDPoolFeatureData) MarshalBinary() ([]byte, error) {
-	b := make([]byte, 0, 5)
+	b := s.b[:0]
 	b = append(b, byte(s.ReportID))
 	b = binary.LittleEndian.AppendUint16(b, s.RamPoolSize)
 	b = append(b, s.MaxSimultaneousEffects)
@@ -433,6 +435,37 @@ type TEffectState struct {
 	Duration       uint16
 	ElapsedTime    uint16
 	StartTime      uint64
+}
+
+func (ef *TEffectState) Clear() {
+	ef.State = MEFFECTSTATE_FREE
+	ef.EffectType = 0
+	ef.Offset = 0
+	ef.Gain = 0
+	ef.AttackLevel = 0
+	ef.FadeLevel = 0
+	ef.FadeTime = 0
+	ef.AttackTime = 0
+	ef.Magnitude = 0
+	ef.EnableAxis = 0
+	ef.DirectionX = 0
+	ef.DirectionY = 0
+	ef.ConditionBlocksCount = 0
+	for _, v := range ef.Conditions {
+		v.CpOffset = 0
+		v.PositiveCoefficient = 0
+		v.NegativeCoefficient = 0
+		v.PositiveSaturation = 0
+		v.NegativeSaturation = 0
+		v.DeadBand = 0
+	}
+	ef.Phase = 0
+	ef.StartMagnitude = 0
+	ef.EndMagnitude = 0
+	ef.Period = 0
+	ef.Duration = 0
+	ef.ElapsedTime = 0
+	ef.StartTime = 0
 }
 
 func (ef *TEffectState) Force(gains Gains, params EffectParams, axis uint8) int32 {
