@@ -4,7 +4,6 @@ package motor
 
 import (
 	"encoding/binary"
-	"fmt"
 	"log"
 	"runtime"
 
@@ -75,11 +74,15 @@ func Setup(can *mcp2515.Device) error {
 	return nil
 }
 
-var state = MotorState{adjust: -600}
+var state = MotorState{adjust: 0}
+
+func SetNeutralAdjust(adj int) {
+	state.adjust = int32(adj)
+}
 
 func GetState(can *mcp2515.Device) (*MotorState, error) {
 	if err := can.Tx(0x107, 8, []byte{0x01, 0x01, 0x02, 0x04, 0x55, 0, 0, 0}); err != nil {
-		fmt.Println(err.Error())
+		return nil, err
 	}
 	msg, err := ReadFrame(can)
 	if err != nil {
