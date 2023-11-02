@@ -4,7 +4,6 @@ package motor
 
 import (
 	"encoding/binary"
-	"log"
 
 	"tinygo.org/x/drivers/mcp2515"
 )
@@ -56,6 +55,6 @@ func GetState(can *mcp2515.Device) (*MotorState, error) {
 var buf = make([]byte, 8)
 
 func Output(can *mcp2515.Device, pow int16) error {
-	log.Printf("Output: %6d", pow)
+	println("Output:", pow)
 	return nil
 }
