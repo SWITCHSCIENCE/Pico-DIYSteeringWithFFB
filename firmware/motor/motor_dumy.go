@@ -47,6 +47,8 @@ func Setup(can *mcp2515.Device) error {
 
 var state = MotorState{adjust: 0}
 
+func SetNeutralAdjust(adjDeg float32) {}
+
 func GetState(can *mcp2515.Device) (*MotorState, error) {
 	state.UnmarshalBinary([]byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
 	return &state, nil

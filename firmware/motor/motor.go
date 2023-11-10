@@ -4,7 +4,6 @@ package motor
 
 import (
 	"encoding/binary"
-	"log"
 	"runtime"
 
 	"tinygo.org/x/drivers/mcp2515"
@@ -50,34 +49,31 @@ func Setup(can *mcp2515.Device) error {
 	if err := can.Tx(0x109, 8, []byte{0, 0, 0, 0, 0, 0, 0, 0}); err != nil {
 		return err
 	}
-	msg, err := ReadFrame(can)
+	_, err := ReadFrame(can)
 	if err != nil {
 		return err
 	}
-	log.Printf("%#v", msg)
 	if err := can.Tx(0x106, 8, []byte{0x80, 0, 0, 0, 0, 0, 0, 0}); err != nil {
 		return err
 	}
-	msg, err = ReadFrame(can)
+	_, err = ReadFrame(can)
 	if err != nil {
 		return err
 	}
-	log.Printf("%#v", msg)
 	if err := can.Tx(0x105, 8, []byte{0x00, 0, 0, 0, 0, 0, 0, 0}); err != nil {
 		return err
 	}
-	msg, err = ReadFrame(can)
+	_, err = ReadFrame(can)
 	if err != nil {
 		return err
 	}
-	log.Printf("%#v", msg)
 	return nil
 }
 
 var state = MotorState{adjust: 0}
 
-func SetNeutralAdjust(adj int) {
-	state.adjust = int32(adj)
+func SetNeutralAdjust(adjDeg float32) {
+	state.adjust = int32(adjDeg * 32767 / 360)
 }
 
 func GetState(can *mcp2515.Device) (*MotorState, error) {

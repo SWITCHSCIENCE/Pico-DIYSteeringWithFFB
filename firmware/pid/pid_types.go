@@ -82,8 +82,8 @@ const (
 
 func TO_LT_END_16(x uint16) uint16 { return ((x << 8) & 0xFF00) | ((x >> 8) & 0x00FF) }
 
-func NormalizeRange(x, maxValue int32) float32 {
-	return float32(x) / float32(maxValue)
+func NormalizeRange(x, maxValue int32) int32 {
+	return int32(x) / int32(maxValue)
 }
 
 type PIDStatusInputData struct {
@@ -474,7 +474,7 @@ func (ef *TEffectState) Force(gains Gains, params EffectParams, axis uint8) int3
 	}
 	condition := axis
 	const DegToRad = math.Pi / 180
-	force := float32(0.0)
+	force := int32(0)
 	/*
 		direction := float64(ef.DirectionX)
 		condition := axis
@@ -488,91 +488,91 @@ func (ef *TEffectState) Force(gains Gains, params EffectParams, axis uint8) int3
 			direction = float64(ef.DirectionY)
 		}
 		angle := (direction * 360.0 / 255.0) * DegToRad
-		ratio := float32(math.Sin(angle))
+		ratio := int32(math.Sin(angle))
 		if axis == 1 {
-			ratio = float32(-1 * math.Cos(angle))
+			ratio = int32(-1 * math.Cos(angle))
 		}
 	*/
 	switch ef.EffectType {
 	case USB_EFFECT_CONSTANT: // 1
-		force = ef.ConstantForceCalculator() * float32(gains.ConstantGain) / 255.0
+		force = ef.ConstantForceCalculator() * int32(gains.ConstantGain) / 255
 	case USB_EFFECT_RAMP: // 2
-		force = ef.RampForceCalculator() * float32(gains.RampGain) / 255.0
+		force = ef.RampForceCalculator() * int32(gains.RampGain) / 255
 	case USB_EFFECT_SQUARE: // 3
-		force = ef.SquareForceCalculator() * float32(gains.SquareGain) / 255.0
+		force = ef.SquareForceCalculator() * int32(gains.SquareGain) / 255
 	case USB_EFFECT_SINE: // 4
-		force = ef.SineForceCalculator() * float32(gains.SineGain) / 255.0
+		force = ef.SineForceCalculator() * int32(gains.SineGain) / 255
 	case USB_EFFECT_TRIANGLE: // 5
-		force = ef.TriangleForceCalculator() * float32(gains.TriangleGain) / 255.0
+		force = ef.TriangleForceCalculator() * int32(gains.TriangleGain) / 255
 	case USB_EFFECT_SAWTOOTHDOWN: // 6
-		force = ef.SawtoothDownForceCalculator() * float32(gains.SawtoothDownGain) / 255.0
+		force = ef.SawtoothDownForceCalculator() * int32(gains.SawtoothDownGain) / 255
 	case USB_EFFECT_SAWTOOTHUP: // 7
-		force = ef.SawtoothUpForceCalculator() * float32(gains.SawtoothUpGain) / 255.0
+		force = ef.SawtoothUpForceCalculator() * int32(gains.SawtoothUpGain) / 255
 	case USB_EFFECT_SPRING: // 8
 		metric := NormalizeRange(params.SpringPosition, params.SpringMaxPosition)
-		force = ef.ConditionForceCalculator(metric, ef.Conditions[condition]) * float32(gains.SpringGain) / 255.0
+		force = ef.ConditionForceCalculator(metric, ef.Conditions[condition]) * int32(gains.SpringGain) / 255
 	case USB_EFFECT_DAMPER: // 9
 		metric := NormalizeRange(params.DamperVelocity, params.DamperMaxVelocity)
-		force = ef.ConditionForceCalculator(metric, ef.Conditions[condition]) * float32(gains.DamperGain) / 255.0
+		force = ef.ConditionForceCalculator(metric, ef.Conditions[condition]) * int32(gains.DamperGain) / 255
 	case USB_EFFECT_INERTIA: // 10
 		metric := NormalizeRange(params.InertiaAcceleration, params.InertiaMaxAcceleration)
-		force = ef.ConditionForceCalculator(metric, ef.Conditions[condition]) * float32(gains.InertiaGain) / 255.0
+		force = ef.ConditionForceCalculator(metric, ef.Conditions[condition]) * int32(gains.InertiaGain) / 255
 	case USB_EFFECT_FRICTION: // 11
 		metric := NormalizeRange(params.FrictionPositionChange, params.FrictionMaxPositionChange)
-		force = ef.ConditionForceCalculator(metric, ef.Conditions[condition]) * float32(gains.FrictionGain) / 255.0
+		force = ef.ConditionForceCalculator(metric, ef.Conditions[condition]) * int32(gains.FrictionGain) / 255
 	case USB_EFFECT_CUSTOM: // 12
 	}
 	ef.ElapsedTime = uint16(uint64(time.Now().UnixMilli()) - ef.StartTime)
-	return int32(force * float32(gains.TotalGain) / 256)
+	return force * int32(gains.TotalGain) / 255
 }
 
-func (ef *TEffectState) ConstantForceCalculator() float32 {
-	return float32(ef.Magnitude) * float32(ef.Gain) / 255
+func (ef *TEffectState) ConstantForceCalculator() int32 {
+	return int32(ef.Magnitude) * int32(ef.Gain) / 255
 }
 
-func (ef *TEffectState) RampForceCalculator() float32 {
-	return float32(ef.StartMagnitude) + float32(ef.ElapsedTime)*(float32(ef.EndMagnitude)-float32(ef.StartMagnitude))/float32(ef.Duration)
+func (ef *TEffectState) RampForceCalculator() int32 {
+	return int32(ef.StartMagnitude) + int32(ef.ElapsedTime)*(int32(ef.EndMagnitude)-int32(ef.StartMagnitude))/int32(ef.Duration)
 }
 
-func (ef *TEffectState) SquareForceCalculator() float32 {
+func (ef *TEffectState) SquareForceCalculator() int32 {
 	return 0
 }
 
-func (ef *TEffectState) SineForceCalculator() float32 {
+func (ef *TEffectState) SineForceCalculator() int32 {
 	return 0
 }
 
-func (ef *TEffectState) TriangleForceCalculator() float32 {
+func (ef *TEffectState) TriangleForceCalculator() int32 {
 	return 0
 }
 
-func (ef *TEffectState) SawtoothDownForceCalculator() float32 {
+func (ef *TEffectState) SawtoothDownForceCalculator() int32 {
 	return 0
 }
 
-func (ef *TEffectState) SawtoothUpForceCalculator() float32 {
+func (ef *TEffectState) SawtoothUpForceCalculator() int32 {
 	return 0
 }
 
-func (ef *TEffectState) ConditionForceCalculator(metric float32, cond TEffectCondition) float32 {
-	tempForce := float32(0)
-	minus := float32(cond.CpOffset) - float32(cond.DeadBand)
-	plus := float32(cond.CpOffset) + float32(cond.DeadBand)
+func (ef *TEffectState) ConditionForceCalculator(metric int32, cond TEffectCondition) int32 {
+	tempForce := int32(0)
+	minus := int32(cond.CpOffset) - int32(cond.DeadBand)
+	plus := int32(cond.CpOffset) + int32(cond.DeadBand)
 	switch {
 	case metric < minus:
-		tempForce = (metric - minus/10000) * float32(cond.NegativeCoefficient)
-		if tempForce < -float32(cond.NegativeSaturation) {
-			tempForce = -float32(cond.NegativeSaturation)
+		tempForce = (metric - minus/10000) * int32(cond.NegativeCoefficient)
+		if tempForce < -int32(cond.NegativeSaturation) {
+			tempForce = -int32(cond.NegativeSaturation)
 		}
 	case metric > plus:
-		tempForce = (metric - plus/10000) * float32(cond.PositiveCoefficient)
-		if tempForce < float32(cond.PositiveSaturation) {
-			tempForce = float32(cond.PositiveSaturation)
+		tempForce = (metric - plus/10000) * int32(cond.PositiveCoefficient)
+		if tempForce < int32(cond.PositiveSaturation) {
+			tempForce = int32(cond.PositiveSaturation)
 		}
 	default:
 		return 0
 	}
-	tempForce = -tempForce * float32(ef.Gain) / 255
+	tempForce = -tempForce * int32(ef.Gain) / 255
 	switch ef.EffectType {
 	case USB_EFFECT_DAMPER:
 	case USB_EFFECT_INERTIA:
