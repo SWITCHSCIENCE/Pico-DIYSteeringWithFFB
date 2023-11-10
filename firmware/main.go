@@ -8,7 +8,7 @@ import (
 
 	"tinygo.org/x/drivers/mcp2515"
 
-	"github.com/SWITCHSCIENCE/Pico-DIYSteeringWithFFB/control"
+	"github.com/SWITCHSCIENCE/ffb_steering_controller/control"
 )
 
 const (
